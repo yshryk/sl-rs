@@ -1,0 +1,12 @@
+[package]
+name = "sl-rs"
+version = "0.1.0"
+authors = ["yasuhara <yasuhara@gmail.com>"]
+
+[[bin]]
+name = "sl"
+
+[dependencies]
+getopts = "0.*"
+ncurses = "5.85"
+nix = "*"
