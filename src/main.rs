@@ -18,7 +18,7 @@ use logo::Logo;
 use c51::C51;
 use d51::D51;
 
-enum SLType {
+pub enum SLType {
     Logo,
     C51,
     D51
@@ -39,13 +39,13 @@ pub fn my_mvaddstr(y: i32, mut x: i32, str: &str) -> bool {
 }
 
 pub struct Config {
-    accident: bool,
-    fly: bool,
-    smoke: bool,
-    smoke_state: smoke::SmokeState
+    pub accident: bool,
+    pub fly: bool,
+    pub smoke: bool,
+    pub smoke_state: smoke::SmokeState
 }
 
-trait Train {
+pub trait Train {
     fn update(&mut self, x: i32) -> bool;
     fn get_smoke_state(&mut self) -> &mut smoke::SmokeState;
 
