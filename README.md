@@ -22,6 +22,12 @@ The original license is available in `LICENSE-ORIGINAL`.
 % sudo install -s target/release/sl /usr/local/bin
 ```
 
+or 
+
+```shell
+% cargo install sl-rs
+```
+
 ## Usage
 
 ```shell
