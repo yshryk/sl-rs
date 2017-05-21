@@ -19,6 +19,6 @@ exclude = [
 name = "sl"
 
 [dependencies]
-getopts = "0.*"
+getopts = "^0"
 ncurses = "5.85"
-nix = "*"
+nix = "^0"
