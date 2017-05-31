@@ -17,6 +17,8 @@ The original license is available in `LICENSE-ORIGINAL`.
 ```shell
 # If you are using openSUSE
 % sudo zypper install ncurses-devel
+# or if you are using Ubuntu
+% sudo apt install ncurses-dev
 
 % cargo build --release
 % sudo install -s target/release/sl /usr/local/bin
