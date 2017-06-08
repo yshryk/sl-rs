@@ -80,7 +80,7 @@ impl Train for D51 {
         let dy;
 
         if self.conf.fly {
-            y = (x / 7) + LINES() - (COLS() / 7) - D51LENGTH;
+            y = (x / 7) + LINES() - (COLS() / 7) - D51HEIGHT;
             dy = 1;
         } else {
             y = LINES() / 2 - 5;
