@@ -1,6 +1,6 @@
 [package]
 name = "sl-rs"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["yasuhara <yasuhara@gmail.com>"]
 repository = "https://bitbucket.org/yshryk/sl-rs"
 homepage = "https://bitbucket.org/yshryk/sl-rs"
