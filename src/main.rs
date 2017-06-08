@@ -127,7 +127,7 @@ fn main() {
     opts.optflag("c", "c51", "select C51");
     opts.optflag("F", "fly", "enable fly mode");
     opts.optflag("a", "accident", "enable accident mode");
-    opts.optflag("s", "smoke", "(not yet implemented) enable smoke mode");
+    opts.optflag("s", "no-smoke", "disable smoke mode");
     opts.optflag("", "help", "show this usage message.");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -152,7 +152,7 @@ fn main() {
     let conf = Config {
         accident: matches.opt_present("accident"),
         fly: matches.opt_present("fly"),
-        smoke: matches.opt_present("smoke"),
+        smoke: !matches.opt_present("no-smoke"),
         smoke_state: smoke::SmokeState::new()
     };
     match sl_type {
