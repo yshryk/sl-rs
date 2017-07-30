@@ -30,7 +30,7 @@ pub fn my_mvaddstr(y: i32, mut x: i32, str: &str) -> bool {
         chars.next();
         x += 1;
     }
-    while let Some(c) = chars.next() {
+    for c in chars {
         if mvaddch(y, x, c as chtype) == ERR { return false }
         x += 1;
     }
@@ -114,7 +114,7 @@ pub trait Train {
     }
 }
 
-fn print_usage(program: &str, opts: Options) {
+fn print_usage(program: &str, opts: &Options) {
     println!("{}", opts.usage(&format!("Usage:\n {} [options]", program)));
 }
 
@@ -132,12 +132,12 @@ fn main() {
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(_) => {
-            print_usage(&program, opts);
+            print_usage(&program, &opts);
             return;
         }
     };
     if matches.opt_present("help") {
-        print_usage(&program, opts);
+        print_usage(&program, &opts);
         return;
     }
     let sl_type =
