@@ -76,7 +76,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "sl-rs"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "getopts 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "ncurses 5.91.0 (registry+https://github.com/rust-lang/crates.io-index)",
