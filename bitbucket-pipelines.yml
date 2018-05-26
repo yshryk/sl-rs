@@ -1,5 +1,4 @@
-#image: scorpil/rust:stable
-image: jimmycuadra/rust
+image: rust:latest
 
 pipelines:
   default:
