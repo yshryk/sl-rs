@@ -87,7 +87,7 @@ pub trait Train {
 
     fn add_smoke(&mut self, y: i32, x: i32) {
         use smoke::*;
-        let mut state = self.get_smoke_state();
+        let state = self.get_smoke_state();
         let sum: usize = state.sum;
         let s = &mut state.s;
 

@@ -17,6 +17,7 @@ exclude = [
 
 [[bin]]
 name = "sl"
+path = "src/main.rs"
 
 [dependencies]
 getopts = "^0"
