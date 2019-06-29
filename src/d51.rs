@@ -1,6 +1,6 @@
 use super::{ Config, Train };
-use common::*;
-use Terminal;
+use crate::common::*;
+use crate::Terminal;
 
 
 const D51HEIGHT: i32 = 	10;

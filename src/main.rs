@@ -1,5 +1,5 @@
-extern crate crossterm;
-extern crate getopts;
+use crossterm;
+
 
 use std::{env, io};
 use std::io::Write;
@@ -9,10 +9,10 @@ use std::time::{Duration, Instant};
 use crossterm::{Crossterm, input, InputEvent, KeyEvent, RawScreen, TerminalCursor};
 use getopts::Options;
 
-use c51::C51;
-use common::*;
-use d51::D51;
-use logo::Logo;
+use crate::c51::C51;
+use crate::common::*;
+use crate::d51::D51;
+use crate::logo::Logo;
 
 mod common;
 mod logo;
@@ -150,7 +150,7 @@ pub trait Train {
     }
 
     fn add_smoke(&mut self, terminal: &Terminal, y: i32, x: i32) {
-        use smoke::*;
+        use crate::smoke::*;
         let state = self.get_smoke_state();
         let sum: usize = state.sum;
         let s = &mut state.s;

@@ -1,6 +1,6 @@
 use super::{ Config, Train };
-use common::*;
-use Terminal;
+use crate::common::*;
+use crate::Terminal;
 
 const LOGOHEIGHT: i32 =    	 6;
 const LOGOFUNNEL: i32 =  	 4;
