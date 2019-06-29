@@ -75,17 +75,16 @@ impl Logo {
 impl Train for Logo {
     fn update(&mut self, terminal: &Terminal, x: i32) -> bool {
         if x < -LOGOLENGTH { return false }
-        let (cols, lines) = terminal.terminal_size();
         let y;
         let py1;
         let py2;
         let py3;
 
         if self.conf.fly {
-            y = (x / 6) + lines - (cols / 6) - LOGOHEIGHT;
+            y = (x / 6) + terminal.lines - (terminal.cols / 6) - LOGOHEIGHT;
             py1 = 2;  py2 = 4;  py3 = 6;
         } else {
-            y = lines / 2 - 3;
+            y = terminal.lines / 2 - 3;
             py1 = 0;  py2 = 0;  py3 = 0;
         }
 

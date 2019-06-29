@@ -76,15 +76,14 @@ impl D51 {
 impl Train for D51 {
     fn update(&mut self, terminal: &Terminal, x: i32) -> bool {
         if x < -D51LENGTH { return false }
-        let (cols, lines) = terminal.terminal_size();
         let y;
         let dy;
 
         if self.conf.fly {
-            y = (x / 7) + lines - (cols / 7) - D51HEIGHT;
+            y = (x / 7) + terminal.lines - (terminal.cols / 7) - D51HEIGHT;
             dy = 1;
         } else {
-            y = lines / 2 - 5;
+            y = terminal.lines / 2 - 5;
             dy = 0;
         }
 

@@ -28,14 +28,20 @@ pub enum SLType {
 pub struct Terminal {
     term: crossterm::Terminal,
     pub cursor: TerminalCursor,
+    pub cols: i32,
+    pub lines: i32,
 }
 
 impl Terminal {
     pub fn new() -> Terminal {
         let crossterm = Crossterm::new();
+        let term = crossterm.terminal();
+        let (cols, lines) = term.terminal_size();
         Terminal {
-            term: crossterm.terminal(),
+            term,
             cursor: crossterm.cursor(),
+            cols: From::from(cols),
+            lines: From::from(lines),
         }
     }
 
@@ -56,11 +62,6 @@ impl Terminal {
     pub fn clear_all(&self) -> io::Result<()> {
         self.term.clear(crossterm::ClearType::All)?;
         Ok(())
-    }
-
-    pub fn terminal_size(&self) -> (i32, i32) {
-        let (cols, lines) = self.term.terminal_size();
-        (From::from(cols), From::from(lines))
     }
 
     pub fn mvaddstr(&self, y: i32, mut x: i32, str: &str) -> bool {
@@ -109,11 +110,11 @@ pub trait Train {
         let mut stdin = input().read_async();
         let _screen = RawScreen::into_raw_mode()?;
         let mut interrupted = false;
-        let sleep_duration = Duration::from_millis(40);
+        let frame_duration = Duration::from_millis(40);
+        let mut next_frame_time = Instant::now() + frame_duration;
 
-        let (mut x, _) = terminal.terminal_size();
+        let mut x = terminal.cols;
         while !interrupted {
-            let start_time = Instant::now();
             if !self.update(&terminal, x) {
                 break;
             }
@@ -129,10 +130,11 @@ pub trait Train {
             }
 
             io::stdout().flush()?;
-            let elapsed = Instant::now() - start_time;
-            if let Some(duration) = sleep_duration.checked_sub(elapsed) {
+            // Instant.checked_duration_since() is unstable feature
+            if let Some(duration) = checked_duration_since(next_frame_time, Instant::now()) {
                 thread::sleep(duration);
             }
+            next_frame_time += frame_duration;
             x -= 1;
         }
 
@@ -173,6 +175,14 @@ pub trait Train {
             s[sum].kind = (sum % 2) as i32;
             state.sum = sum + 1;
         }
+    }
+}
+
+fn checked_duration_since(s: Instant, earlier: Instant) -> Option<Duration> {
+    if s > earlier {
+        Some(s - earlier)
+    } else {
+        None
     }
 }
 
