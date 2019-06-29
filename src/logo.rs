@@ -73,7 +73,7 @@ impl Logo {
 }
 
 impl Train for Logo {
-    fn update(&mut self, terminal: &Terminal, x: i32) -> bool {
+    fn update(&mut self, terminal: &mut Terminal, x: i32) -> bool {
         if x < -LOGOLENGTH { return false }
         let y;
         let py1;

@@ -2,7 +2,7 @@ use crossterm;
 
 
 use std::{env, io};
-use std::io::Write;
+use std::io::{Write, stdout, StdoutLock};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -25,28 +25,28 @@ enum SLType {
     D51,
 }
 
-pub struct Terminal {
+pub struct Terminal<'a> {
+    out: StdoutLock<'a>,
     term: crossterm::Terminal,
     pub cursor: TerminalCursor,
     pub cols: i32,
     pub lines: i32,
 }
 
-impl Default for Terminal {
-    fn default() -> Self {
+impl<'a> Terminal<'a> {
+    fn new(out: StdoutLock<'a>) -> Self {
         let crossterm = Crossterm::new();
         let term = crossterm.terminal();
         let (cols, lines) = term.terminal_size();
         Terminal {
+            out,
             term,
             cursor: crossterm.cursor(),
             cols: From::from(cols),
             lines: From::from(lines),
         }
     }
-}
 
-impl Terminal {
     pub fn init(&self) -> io::Result<()> {
         self.clear_all()?;
         self.cursor.hide()?;
@@ -55,8 +55,7 @@ impl Terminal {
 
     fn finish(&self) -> io::Result<()> {
         self.clear_all()?;
-        let (_, lines) = self.term.terminal_size();
-        self.cursor.goto(0, lines)?;
+        self.cursor.goto(0, self.lines as u16)?;
         self.cursor.show()?;
         Ok(())
     }
@@ -66,7 +65,7 @@ impl Terminal {
         Ok(())
     }
 
-    pub fn mvaddstr(&self, y: i32, mut x: i32, str: &str) -> bool {
+    pub fn mvaddstr(&mut self, y: i32, mut x: i32, str: &str) -> bool {
         let mut chars = str.chars();
         while x < 0 {
             chars.next();
@@ -76,7 +75,8 @@ impl Terminal {
             if self.cursor.goto(x as u16, y as u16).is_err() {
                 return false;
             }
-            if self.term.write(c).is_err() {
+
+            if write!(self.out, "{}", c).is_err() {
                 return false;
             }
 
@@ -87,7 +87,7 @@ impl Terminal {
     }
 }
 
-impl Drop for Terminal {
+impl Drop for Terminal<'_> {
     fn drop(&mut self) {
         self.finish().expect("drop Terminal");
     }
@@ -102,12 +102,13 @@ pub struct Config {
 }
 
 pub trait Train {
-    fn update(&mut self, terminal: &Terminal, x: i32) -> bool;
+    fn update(&mut self, terminal: &mut Terminal, x: i32) -> bool;
     fn get_smoke_state(&mut self) -> &mut smoke::SmokeState;
     fn config(&self) -> &Config;
 
     fn run(&mut self) -> io::Result<()> {
-        let terminal = Terminal::default();
+        let out = stdout();
+        let mut terminal = Terminal::new(out.lock());
         terminal.init()?;
         let mut stdin = input().read_async();
         let _screen = RawScreen::into_raw_mode()?;
@@ -117,7 +118,7 @@ pub trait Train {
 
         let mut x = terminal.cols;
         while !interrupted {
-            if !self.update(&terminal, x) {
+            if !self.update(&mut terminal, x) {
                 break;
             }
 
@@ -144,14 +145,14 @@ pub trait Train {
     }
 
 
-    fn add_man(&self, terminal: &Terminal, y: i32, x: i32) {
+    fn add_man(&self, terminal: &mut Terminal, y: i32, x: i32) {
         for i in 0..2 {
             let man_x = ((SL_LENGTH + x) / 12 % 2) as usize;
             terminal.mvaddstr(y + i, x, MAN[man_x][i as usize]);
         }
     }
 
-    fn add_smoke(&mut self, terminal: &Terminal, y: i32, x: i32) {
+    fn add_smoke(&mut self, terminal: &mut Terminal, y: i32, x: i32) {
         use crate::smoke::*;
         let state = self.get_smoke_state();
         let sum: usize = state.sum;

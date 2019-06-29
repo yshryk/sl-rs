@@ -78,7 +78,7 @@ impl C51 {
 }
 
 impl Train for C51 {
-    fn update(&mut self, terminal: &Terminal, x: i32) -> bool {
+    fn update(&mut self, terminal: &mut Terminal, x: i32) -> bool {
         if x < -C51LENGTH { return false }
         let y;
         let dy;

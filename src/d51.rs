@@ -74,7 +74,7 @@ impl D51 {
 }
 
 impl Train for D51 {
-    fn update(&mut self, terminal: &Terminal, x: i32) -> bool {
+    fn update(&mut self, terminal: &mut Terminal, x: i32) -> bool {
         if x < -D51LENGTH { return false }
         let y;
         let dy;
