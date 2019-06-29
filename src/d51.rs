@@ -87,7 +87,7 @@ impl Train for D51 {
             dy = 0;
         }
 
-        for i in 0..D51HEIGHT + 1 {
+        for i in 0..=D51HEIGHT {
             let idx = i as usize;
             let sl_y = ((D51LENGTH + x) % D51PATTERNS) as usize;
             terminal.mvaddstr(y + i, x, SL[sl_y][idx]);

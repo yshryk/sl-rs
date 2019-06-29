@@ -19,7 +19,7 @@ mod logo;
 mod c51;
 mod d51;
 
-pub enum SLType {
+enum SLType {
     Logo,
     C51,
     D51,
@@ -32,8 +32,8 @@ pub struct Terminal {
     pub lines: i32,
 }
 
-impl Terminal {
-    pub fn new() -> Terminal {
+impl Default for Terminal {
+    fn default() -> Self {
         let crossterm = Crossterm::new();
         let term = crossterm.terminal();
         let (cols, lines) = term.terminal_size();
@@ -44,7 +44,9 @@ impl Terminal {
             lines: From::from(lines),
         }
     }
+}
 
+impl Terminal {
     pub fn init(&self) -> io::Result<()> {
         self.clear_all()?;
         self.cursor.hide()?;
@@ -105,7 +107,7 @@ pub trait Train {
     fn config(&self) -> &Config;
 
     fn run(&mut self) -> io::Result<()> {
-        let terminal = Terminal::new();
+        let terminal = Terminal::default();
         terminal.init()?;
         let mut stdin = input().read_async();
         let _screen = RawScreen::into_raw_mode()?;
@@ -226,7 +228,7 @@ fn main() {
         accident: matches.opt_present("accident"),
         fly: matches.opt_present("fly"),
         smoke: !matches.opt_present("no-smoke"),
-        smoke_state: smoke::SmokeState::new(),
+        smoke_state: smoke::SmokeState::default(),
         interruptable: matches.opt_present("interrupt"),
     };
     match sl_type {

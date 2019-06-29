@@ -91,7 +91,7 @@ impl Train for C51 {
             dy = 0;
         }
 
-        for i in 0..C51HEIGHT + 1 {
+        for i in 0..=C51HEIGHT {
             let idx = i as usize;
             let sl_y = ((C51LENGTH + x) % C51PATTERNS) as usize;
             terminal.mvaddstr(y + i, x, SL[sl_y][idx]);

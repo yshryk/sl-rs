@@ -88,7 +88,7 @@ impl Train for Logo {
             py1 = 0;  py2 = 0;  py3 = 0;
         }
 
-        for i in 0..LOGOHEIGHT + 1 {
+        for i in 0..=LOGOHEIGHT {
             let idx = i as usize;
             let sl_y = ((LOGOLENGTH + x) / 3 % LOGOPATTERNS) as usize;
             terminal.mvaddstr(y + i, x, SL[sl_y][idx]);

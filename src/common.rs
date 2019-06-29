@@ -55,8 +55,8 @@ pub mod smoke {
         pub s: [Smokes; 1000]
     }
 
-    impl SmokeState {
-        pub fn new() -> SmokeState {
+    impl Default for SmokeState {
+        fn default() -> SmokeState {
             SmokeState {
                 sum: 0,
                 s: [Smokes { x: 0, y: 0, ptrn: 0, kind: 0 }; 1000]
