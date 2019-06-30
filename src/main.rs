@@ -2,8 +2,9 @@ extern crate crossterm;
 extern crate getopts;
 
 use std::{env, io};
-use std::{thread, time};
 use std::io::Write;
+use std::thread;
+use std::time::{Duration, Instant};
 
 use crossterm::{Crossterm, input, InputEvent, KeyEvent, RawScreen, TerminalCursor};
 use getopts::Options;
@@ -108,9 +109,11 @@ pub trait Train {
         let mut stdin = input().read_async();
         let _screen = RawScreen::into_raw_mode()?;
         let mut interrupted = false;
+        let sleep_duration = Duration::from_millis(40);
 
         let (mut x, _) = terminal.terminal_size();
         while !interrupted {
+            let start_time = Instant::now();
             if !self.update(&terminal, x) {
                 break;
             }
@@ -126,7 +129,10 @@ pub trait Train {
             }
 
             io::stdout().flush()?;
-            thread::sleep(time::Duration::from_millis(40));
+            let elapsed = Instant::now() - start_time;
+            if let Some(duration) = sleep_duration.checked_sub(elapsed) {
+                thread::sleep(duration);
+            }
             x -= 1;
         }
 
