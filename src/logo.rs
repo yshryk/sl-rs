@@ -1,6 +1,6 @@
-use ncurses::*;
-use super::{ my_mvaddstr, Config, Train };
+use super::{ Config, Train };
 use common::*;
+use Terminal;
 
 const LOGOHEIGHT: i32 =    	 6;
 const LOGOFUNNEL: i32 =  	 4;
@@ -73,36 +73,39 @@ impl Logo {
 }
 
 impl Train for Logo {
-    fn update(&mut self, x: i32) -> bool {
+    fn update(&mut self, terminal: &Terminal, x: i32) -> bool {
         if x < -LOGOLENGTH { return false }
+        let (cols, lines) = terminal.terminal_size();
         let y;
         let py1;
         let py2;
         let py3;
 
         if self.conf.fly {
-            y = (x / 6) + LINES() - (COLS() / 6) - LOGOHEIGHT;
+            y = (x / 6) + lines - (cols / 6) - LOGOHEIGHT;
             py1 = 2;  py2 = 4;  py3 = 6;
         } else {
-            y = LINES() / 2 - 3;
+            y = lines / 2 - 3;
             py1 = 0;  py2 = 0;  py3 = 0;
         }
 
         for i in 0..LOGOHEIGHT + 1 {
             let idx = i as usize;
             let sl_y = ((LOGOLENGTH + x) / 3 % LOGOPATTERNS) as usize;
-            my_mvaddstr(y + i, x, SL[sl_y][idx]);
-            my_mvaddstr(y + i + py1, x + 21, COAL[idx]);
-            my_mvaddstr(y + i + py2, x + 42, CAR[idx]);
-            my_mvaddstr(y + i + py3, x + 63, CAR[idx]);
+            terminal.mvaddstr(y + i, x, SL[sl_y][idx]);
+            terminal.mvaddstr(y + i + py1, x + 21, COAL[idx]);
+            terminal.mvaddstr(y + i + py2, x + 42, CAR[idx]);
+            terminal.mvaddstr(y + i + py3, x + 63, CAR[idx]);
         }
         if self.conf.accident {
-            self.add_man(y + 1, x + 14);
-            self.add_man(y + 1 + py2, x + 45);  self.add_man(y + 1 + py2, x + 53);
-            self.add_man(y + 1 + py3, x + 66);  self.add_man(y + 1 + py3, x + 74);
+            self.add_man(terminal, y + 1, x + 14);
+            self.add_man(terminal, y + 1 + py2, x + 45);
+            self.add_man(terminal, y + 1 + py2, x + 53);
+            self.add_man(terminal, y + 1 + py3, x + 66);
+            self.add_man(terminal, y + 1 + py3, x + 74);
         }
         if self.conf.smoke {
-            self.add_smoke(y - 1, x + LOGOFUNNEL);
+            self.add_smoke(terminal, y - 1, x + LOGOFUNNEL);
         }
 
         true

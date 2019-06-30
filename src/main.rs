@@ -1,41 +1,92 @@
+extern crate crossterm;
 extern crate getopts;
-extern crate ncurses;
-extern crate nix;
+
+use std::{env, io};
+use std::{thread, time};
+use std::io::Write;
+
+use crossterm::{Crossterm, input, InputEvent, KeyEvent, RawScreen, TerminalCursor};
+use getopts::Options;
+
+use c51::C51;
+use common::*;
+use d51::D51;
+use logo::Logo;
 
 mod common;
 mod logo;
 mod c51;
 mod d51;
 
-use getopts::Options;
-use std::env;
-use std::{thread, time};
-use ncurses::*;
-use nix::sys::signal;
-use nix::sys::signal::{sigaction, SigAction, SigHandler, SaFlags, SigSet};
-use common::*;
-use logo::Logo;
-use c51::C51;
-use d51::D51;
-
 pub enum SLType {
     Logo,
     C51,
-    D51
+    D51,
 }
 
-pub fn my_mvaddstr(y: i32, mut x: i32, str: &str) -> bool {
-    let mut chars = str.chars();
-    while x < 0 {
-        chars.next();
-        x += 1;
-    }
-    for c in chars {
-        if mvaddch(y, x, c as chtype) == ERR { return false }
-        x += 1;
+pub struct Terminal {
+    term: crossterm::Terminal,
+    pub cursor: TerminalCursor,
+}
+
+impl Terminal {
+    pub fn new() -> Terminal {
+        let crossterm = Crossterm::new();
+        Terminal {
+            term: crossterm.terminal(),
+            cursor: crossterm.cursor(),
+        }
     }
 
-    true
+    pub fn init(&self) -> io::Result<()> {
+        self.clear_all()?;
+        self.cursor.hide()?;
+        Ok(())
+    }
+
+    fn finish(&self) -> io::Result<()> {
+        self.clear_all()?;
+        let (_, lines) = self.term.terminal_size();
+        self.cursor.goto(0, lines)?;
+        self.cursor.show()?;
+        Ok(())
+    }
+
+    pub fn clear_all(&self) -> io::Result<()> {
+        self.term.clear(crossterm::ClearType::All)?;
+        Ok(())
+    }
+
+    pub fn terminal_size(&self) -> (i32, i32) {
+        let (cols, lines) = self.term.terminal_size();
+        (From::from(cols), From::from(lines))
+    }
+
+    pub fn mvaddstr(&self, y: i32, mut x: i32, str: &str) -> bool {
+        let mut chars = str.chars();
+        while x < 0 {
+            chars.next();
+            x += 1;
+        }
+        for c in chars {
+            if self.cursor.goto(x as u16, y as u16).is_err() {
+                return false;
+            }
+            if self.term.write(c).is_err() {
+                return false;
+            }
+
+            x += 1;
+        }
+
+        true
+    }
+}
+
+impl Drop for Terminal {
+    fn drop(&mut self) {
+        self.finish().expect("drop Terminal");
+    }
 }
 
 pub struct Config {
@@ -47,49 +98,50 @@ pub struct Config {
 }
 
 pub trait Train {
-    fn update(&mut self, x: i32) -> bool;
+    fn update(&mut self, terminal: &Terminal, x: i32) -> bool;
     fn get_smoke_state(&mut self) -> &mut smoke::SmokeState;
     fn config(&self) -> &Config;
 
-    fn run(&mut self) {
-        initscr();
+    fn run(&mut self) -> io::Result<()> {
+        let terminal = Terminal::new();
+        terminal.init()?;
+        let mut stdin = input().read_async();
+        let _screen = RawScreen::into_raw_mode()?;
+        let mut interrupted = false;
 
-        if !self.config().interruptable {
-            let action = SigAction::new(SigHandler::SigIgn, SaFlags::empty(), SigSet::empty());
-            unsafe { sigaction(signal::SIGINT, &action) }.unwrap();
-        }
-
-        noecho();
-        curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);
-        nodelay(stdscr(), true);
-        leaveok(stdscr(), true);
-        scrollok(stdscr(), false);
-
-        let mut x = COLS() - 1;
-        loop {
-            if !self.update(x) {
+        let (mut x, _) = terminal.terminal_size();
+        while !interrupted {
+            if !self.update(&terminal, x) {
                 break;
             }
 
-            getch();
-            refresh();
+            loop {
+                match stdin.next() {
+                    Some(InputEvent::Keyboard(KeyEvent::Ctrl(key))) if key == 'c' => {
+                        if self.config().interruptable { interrupted = true }
+                    }
+                    Some(_) => (),
+                    None => break,
+                }
+            }
+
+            io::stdout().flush()?;
             thread::sleep(time::Duration::from_millis(40));
             x -= 1;
         }
 
-        mvcur(0, COLS() - 1, LINES() - 1, 0);
-        endwin();
+        Ok(())
     }
 
 
-    fn add_man(&self, y: i32, x: i32) {
+    fn add_man(&self, terminal: &Terminal, y: i32, x: i32) {
         for i in 0..2 {
             let man_x = ((SL_LENGTH + x) / 12 % 2) as usize;
-            my_mvaddstr(y + i, x, MAN[man_x][i as usize]);
+            terminal.mvaddstr(y + i, x, MAN[man_x][i as usize]);
         }
     }
 
-    fn add_smoke(&mut self, y: i32, x: i32) {
+    fn add_smoke(&mut self, terminal: &Terminal, y: i32, x: i32) {
         use smoke::*;
         let state = self.get_smoke_state();
         let sum: usize = state.sum;
@@ -98,7 +150,7 @@ pub trait Train {
         if x % 4 == 0 {
             for i in 0..sum {
                 let pattern = s[i].ptrn as usize;
-                my_mvaddstr(s[i].y, s[i].x, ERASER[pattern]);
+                terminal.mvaddstr(s[i].y, s[i].x, ERASER[pattern]);
                 s[i].y -= DY[pattern];
                 s[i].x += DX[pattern];
                 let pattern = if pattern < SMOKEPTNS - 1 {
@@ -106,9 +158,9 @@ pub trait Train {
                     s[i].ptrn as usize
                 } else { pattern };
 
-                my_mvaddstr(s[i].y, s[i].x, SMOKE[(s[i].kind) as usize][pattern]);
+                terminal.mvaddstr(s[i].y, s[i].x, SMOKE[(s[i].kind) as usize][pattern]);
             }
-            my_mvaddstr(y, x, SMOKE[sum % 2][0]);
+            terminal.mvaddstr(y, x, SMOKE[sum % 2][0]);
             s[sum].y = y;
             s[sum].x = x;
             s[sum].ptrn = 0;
@@ -165,5 +217,5 @@ fn main() {
         SLType::Logo => Logo::new(conf).run(),
         SLType::C51 => C51::new(conf).run(),
         SLType::D51 => D51::new(conf).run()
-    };
+    }.expect("Train run");
 }

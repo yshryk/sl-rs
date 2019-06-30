@@ -1,6 +1,6 @@
-use ncurses::*;
-use super::{ my_mvaddstr, Config, Train };
+use super::{ Config, Train };
 use common::*;
+use Terminal;
 
 const C51HEIGHT: i32 = 11;
 const C51FUNNEL: i32 = 7;
@@ -78,31 +78,32 @@ impl C51 {
 }
 
 impl Train for C51 {
-    fn update(&mut self, x: i32) -> bool {
+    fn update(&mut self, terminal: &Terminal, x: i32) -> bool {
         if x < -C51LENGTH { return false }
+        let (cols, lines) = terminal.terminal_size();
         let y;
         let dy;
 
         if self.conf.fly {
-            y = (x / 7) + LINES() - (COLS() / 7) - C51HEIGHT;
+            y = (x / 7) + lines - (cols / 7) - C51HEIGHT;
             dy = 1;
         } else {
-            y = LINES() / 2 - 5;
+            y = lines / 2 - 5;
             dy = 0;
         }
 
         for i in 0..C51HEIGHT + 1 {
             let idx = i as usize;
             let sl_y = ((C51LENGTH + x) % C51PATTERNS) as usize;
-            my_mvaddstr(y + i, x, SL[sl_y][idx]);
-            my_mvaddstr(y + i + dy, x + 55, COAL[idx]);
+            terminal.mvaddstr(y + i, x, SL[sl_y][idx]);
+            terminal.mvaddstr(y + i + dy, x + 55, COAL[idx]);
         }
         if self.conf.accident {
-            self.add_man(y + 3, x + 45);
-            self.add_man(y + 3, x + 49);
+            self.add_man(terminal, y + 3, x + 45);
+            self.add_man(terminal, y + 3, x + 49);
         }
         if self.conf.smoke {
-            self.add_smoke(y - 1, x + C51FUNNEL);
+            self.add_smoke(terminal, y - 1, x + C51FUNNEL);
         }
 
         true
