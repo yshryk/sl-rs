@@ -111,4 +111,8 @@ impl Train for Logo {
     fn get_smoke_state(&mut self) -> &mut smoke::SmokeState {
         &mut self.conf.smoke_state
     }
+
+    fn config(&self) -> &Config {
+        &self.conf
+    }
 }

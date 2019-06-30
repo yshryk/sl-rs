@@ -19,7 +19,7 @@ pub const COALDEL: &str = "                              ";
 pub mod smoke {
     pub const SMOKEPTNS: usize = 16;
 
-    #[derive(Copy, Clone)]
+    #[derive(Copy, Clone, Debug)]
     pub struct Smokes {
         pub y: i32,
         pub x: i32,

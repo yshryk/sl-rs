@@ -42,18 +42,22 @@ pub struct Config {
     pub accident: bool,
     pub fly: bool,
     pub smoke: bool,
-    pub smoke_state: smoke::SmokeState
+    pub smoke_state: smoke::SmokeState,
+    pub interruptable: bool,
 }
 
 pub trait Train {
     fn update(&mut self, x: i32) -> bool;
     fn get_smoke_state(&mut self) -> &mut smoke::SmokeState;
+    fn config(&self) -> &Config;
 
     fn run(&mut self) {
         initscr();
-        
-        let action = SigAction::new(SigHandler::SigIgn, SaFlags::empty(), SigSet::empty());
-        unsafe { sigaction(signal::SIGINT, &action) }.unwrap();
+
+        if !self.config().interruptable {
+            let action = SigAction::new(SigHandler::SigIgn, SaFlags::empty(), SigSet::empty());
+            unsafe { sigaction(signal::SIGINT, &action) }.unwrap();
+        }
 
         noecho();
         curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);
@@ -128,6 +132,7 @@ fn main() {
     opts.optflag("F", "fly", "enable fly mode");
     opts.optflag("a", "accident", "enable accident mode");
     opts.optflag("s", "no-smoke", "disable smoke mode");
+    opts.optflag("i", "interrupt", "enable Ctrl-C interrupt");
     opts.optflag("", "help", "show this usage message.");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -153,7 +158,8 @@ fn main() {
         accident: matches.opt_present("accident"),
         fly: matches.opt_present("fly"),
         smoke: !matches.opt_present("no-smoke"),
-        smoke_state: smoke::SmokeState::new()
+        smoke_state: smoke::SmokeState::new(),
+        interruptable: matches.opt_present("interrupt"),
     };
     match sl_type {
         SLType::Logo => Logo::new(conf).run(),
