@@ -10,7 +10,6 @@ pipelines:
           #- echo "Setup git with read/write access" ; ./scripts/setup-git.sh
           - echo "Install libs" 
           - apt-get update
-          - apt-get install -y --no-install-recommends libncurses5-dev
           - echo "Build project"                    ; cargo build --release
           #- echo "Format source code"               ; ./scripts/fmt.sh
           - echo "Run unit tests"                   ; cargo test --release -v --no-fail-fast -- --nocapture --test
