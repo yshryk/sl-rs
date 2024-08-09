@@ -1,10 +1,10 @@
 [package]
 name = "sl-rs"
-version = "2.0.0"
+version = "2.0.1"
 edition = "2018"
 authors = ["yasuhara <yasuhara@gmail.com>"]
-repository = "https://bitbucket.org/yshryk/sl-rs"
-homepage = "https://bitbucket.org/yshryk/sl-rs"
+repository = "https://github.com/yshryk/sl-rs"
+homepage = "https://github.com/yshryk/sl-rs"
 license = "MIT/Apache-2.0"
 readme = "README.md"
 description = """
@@ -23,3 +23,4 @@ path = "src/main.rs"
 [dependencies]
 getopts = "^0"
 crossterm = { version = "0.9.6", default-features = false, features = ["terminal", "cursor", "input", "screen"] }
+
